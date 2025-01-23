@@ -14,7 +14,7 @@ def recv_j():
             try:
                 data = data + s.recv(1024).decode('utf-8') #receiving chunks of 1024 bytes until json.loads(data) returns a correct json format
                 return json.loads(data) #
-            except ValueError: #if the output of json.loads(data) is not complete (not in json format)
+            except ValueError: #if the output of json.loads(data) is not complete (not in json format)a
                 continue
 
 def shell():
