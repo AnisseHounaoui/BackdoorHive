@@ -14,6 +14,6 @@ Supported commands:
 | download | download file from client -> server  | ✅ |
 | upload | upload file from server -> client | ✅ |
 | keylogger start/stop | start/stop capturing keystrokes | 🔄 |
-| screenshot | take a real-time screenshot on client | 🔄 |
+| screenshot | take a real-time screenshot on client | ✅ |
 | sessions | display active clients and specify client by sessions id | 🔄 |
 | background | background the current active session | 🔄 |
