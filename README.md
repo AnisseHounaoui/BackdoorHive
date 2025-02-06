@@ -2,18 +2,30 @@
 
 With this project Im planning to create:
 
-- Cross-plateform backdoor
-- Multi-threaded C2 server 
+- A Windows backdoor
+- C2 server 
 - Webapp for payload generation, bots visualisation and other features.
 
 
 Supported commands:
+
+## C2 commands:
 | Command    | Functionnality    | Implemented    |
 |-------------|-------------|-------------|
-| cd | change directory  | ✅ |
+| sessions | display active clients | ✅ |
+| session "id" | interact with specific session | ✅ |
+| background | background the current active session | ✅ |
+| background | background the current active session | ✅ |
+| exit | exit C2 server | ✅ |
+
+## Session commands:
+| Command    | Functionnality    | Implemented    |
+|-------------|-------------|-------------|
+| check | check user's privileges  | ✅ |
+| wget | download file from a URL | ✅ |
 | download | download file from client -> server  | ✅ |
 | upload | upload file from server -> client | ✅ |
 | keylogger start/stop | start/stop capturing keystrokes | 🔄 |
 | screenshot | take a real-time screenshot on client | ✅ |
-| sessions | display active clients and specify client by sessions id | 🔄 |
-| background | background the current active session | 🔄 |
+| kill_client | Close connection with specific client | ✅ |
+| help | display custom supported commands  | ✅ |

