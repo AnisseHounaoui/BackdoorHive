@@ -63,6 +63,17 @@ def shell():
         if cmd == "exit_client":
             break
 
+        elif cmd == "help":
+            help_opt = '''
+check           : Check user"s privileges 
+download <file> : Download file from host
+Upload <file>   : Upload file to host
+wget <URL>      : Download file from a URL 
+screenshot      : Take a screenshot
+exit_client     : Disconnect current host 
+exit_server     : Disconnect server
+                        '''
+            send_j(help_opt)
         elif cmd[:2] == "cd" and len(cmd) > 2:
             try:
                 os.chdir(cmd[3:]) #change directory to what's after "cd"
